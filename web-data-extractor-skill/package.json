@@ -1,0 +1,26 @@
+{
+  "name": "web-data-extractor",
+  "version": "1.0.0",
+  "description": "Skill：从网页提取用户可见的结构化数据（表格/列表/定义列表/卡片等）→ 在 SpreadJS 设计器中在线编辑 → 将编辑后的数据回传给 Agent（零第三方依赖）",
+  "main": "index.js",
+  "bin": {
+    "web-data-extractor": "index.js"
+  },
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [
+    "spreadjs",
+    "skill",
+    "web-scraping",
+    "web-data",
+    "table",
+    "list",
+    "workbuddy",
+    "trae-work"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

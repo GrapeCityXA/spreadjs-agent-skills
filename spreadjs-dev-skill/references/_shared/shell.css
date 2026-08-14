@@ -1,0 +1,14 @@
+* { box-sizing: border-box; }
+html, body { margin: 0; font-family: 'Segoe UI', system-ui, sans-serif; background: #f5f6f8; color: #1f2937; }
+.demo { max-width: 1100px; margin: 0 auto; padding: 16px; }
+.demo__bar h1 { font-size: 18px; margin: 0 0 12px; }
+.demo__controls { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; align-items: center; }
+.demo__controls button,
+.demo__controls input,
+.demo__controls select,
+.demo__controls textarea { padding: 6px 10px; border: 1px solid #d1d5db; border-radius: 6px; background: #fff; font-size: 13px; }
+.demo__controls button { cursor: pointer; }
+.demo__controls button:hover { background: #eef2ff; border-color: #6366f1; }
+.demo__controls label { font-size: 13px; color: #374151; }
+.demo__host { height: 460px; width: 100%; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; background: #fff; }
+.demo__log { margin-top: 12px; padding: 10px; background: #111827; color: #d1d5db; border-radius: 8px; font-size: 12px; max-height: 200px; overflow: auto; white-space: pre-wrap; }

@@ -1,0 +1,27 @@
+{
+  "name": "online-xlsx-editor",
+  "version": "1.0.0",
+  "description": "Skill：在浏览器中用 SpreadJS 设计器打开/编辑本地或附件的 xlsx/csv 等表格文件，编辑结果回传给 Agent；也可 --form 根据 Agent 提供的表单定义生成可填写网格采集结构化数据",
+  "main": "index.js",
+  "bin": {
+    "online-xlsx-editor": "index.js"
+  },
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [
+    "spreadjs",
+    "skill",
+    "excel",
+    "xlsx",
+    "csv",
+    "editor",
+    "workbuddy",
+    "trae-work"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {}
+}

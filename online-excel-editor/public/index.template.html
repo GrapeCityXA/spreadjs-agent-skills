@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OnlineXlsxEditor · 在线编辑文件</title>
+
+  <!-- SpreadJS 样式（UMD/CDN 版本） -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@grapecity-software/spread-sheets@19.1.1/styles/gc.spread.sheets.excel2013white.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@grapecity-software/spread-sheets-designer@19.1.1/styles/gc.spread.sheets.designer.min.css" />
+
+  <style>
+    html, body {
+      margin: 0; padding: 0; height: 100%; overflow: hidden;
+      font-family: "Microsoft YaHei", "PingFang SC", "Segoe UI", Arial, sans-serif;
+    }
+    #topbar {
+      position: relative; z-index: 10; height: 48px; box-sizing: border-box;
+      display: flex; align-items: center; gap: 12px; padding: 0 16px;
+      background: #fff; border-bottom: 1px solid #e3e6ea;
+    }
+    #topbar .title { font-size: 14px; font-weight: 600; color: #1f2329; white-space: nowrap; }
+    #topbar .subtitle { font-size: 12px; color: #8a919f; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    #topbar .spacer { flex: 1; }
+    #status { font-size: 12px; color: #3370ff; white-space: nowrap; }
+    #btn-confirm {
+      height: 32px; padding: 0 18px; border: none; border-radius: 4px;
+      background: #3370ff; color: #fff; font-size: 14px; cursor: pointer;
+    }
+    #btn-confirm:hover { background: #2861e0; }
+    #btn-confirm:disabled { background: #a6c0f5; cursor: not-allowed; }
+    #designer-host { position: absolute; top: 48px; left: 0; right: 0; bottom: 0; }
+    #errbox { display: none; position: fixed; inset: 0; background: #fff; z-index: 9999; padding: 60px 40px; }
+    #errbox h3 { color: #e02020; }
+    #errbox p { color: #333; word-break: break-all; }
+    #loading {
+      position: fixed; inset: 0; background: #f7f8fa; z-index: 5;
+      display: flex; align-items: center; justify-content: center; color: #666; font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div id="errbox"><h3>页面初始化失败</h3><p id="errmsg"></p></div>
+  <div id="loading">正在加载 SpreadJS 设计器…</div>
+
+  <!-- 顶部操作栏 -->
+  <div id="topbar">
+    <span class="title" id="page-title">文件在线编辑</span>
+    <span class="subtitle" id="page-subtitle"></span>
+    <span class="spacer"></span>
+    <span id="status">正在加载数据…</span>
+    <button id="btn-confirm" title="导出并下载 xlsx，同时把编辑结果回传给 Agent">下载表格 (xlsx)</button>
+  </div>
+  <div id="designer-host"></div>
+
+  <!-- 由 Skill 注入的初始数据（含文件 base64） -->
+  <script>
+    window.__INITIAL_DATA__ = __INITIAL_DATA_JSON__;
+  </script>
+
+  <!-- ========== SpreadJS 核心 + 插件 + 设计器（UMD） ========== -->
+  <script src="https://cdn.jsdelivr.net/npm/@grapecity-software/spread-sheets@19.1.1/dist/gc.spread.sheets.all.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@grapecity-software/spread-sheets-resources-zh@19.1.1/dist/gc.spread.sheets.resources.zh.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@grapecity-software/spread-sheets-shapes@19.1.1/dist/gc.spread.sheets.shapes.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@grapecity-software/spread-sheets-charts@19.1.1/dist/gc.spread.sheets.charts.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@grapecity-software/spread-sheets-slicers@19.1.1/dist/gc.spread.sheets.slicers.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@grapecity-software/spread-sheets-tablesheet@19.1.1/dist/gc.spread.sheets.tablesheet.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@grapecity-software/spread-sheets-print@19.1.1/dist/gc.spread.sheets.print.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@grapecity-software/spread-sheets-pdf@19.1.1/dist/gc.spread.sheets.pdf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@grapecity-software/spread-sheets-barcode@19.1.1/dist/gc.spread.sheets.barcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@grapecity-software/spread-sheets-pivot-addon@19.1.1/dist/gc.spread.pivot.pivottables.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@grapecity-software/spread-sheets-ganttsheet@19.1.1/dist/gc.spread.sheets.ganttsheet.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@grapecity-software/spread-sheets-reportsheet-addon@19.1.1/dist/gc.spread.report.reportsheet.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@grapecity-software/spread-sheets-io@19.1.1/dist/gc.spread.sheets.io.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@grapecity-software/spread-sheets-designer-resources-cn@19.1.1/dist/gc.spread.sheets.designer.resource.cn.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@grapecity-software/spread-sheets-designer@19.1.1/dist/gc.spread.sheets.designer.all.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@grapecity-software/spread-excelio@19.1.1/dist/gc.spread.excelio.min.js"></script>
+
+  <script>
+  (function () {
+    'use strict';
+
+    // ---- 初始数据（由 Skill 注入） ----
+    var INITIAL = window.__INITIAL_DATA__ || { type: 'file', fileName: 'data.xlsx', ext: 'excel', base64: '' };
+
+    var designer = null;
+    var spread = null;
+    var submitted = false;
+    var initialSnapshot = null;
+
+    // 摘要计算的范围上限（避免超大工作表拖慢浏览器）
+    var SNAPSHOT_MAX_ROWS = 500;
+    var SNAPSHOT_MAX_COLS = 200;
+
+    function $(id) { return document.getElementById(id); }
+    function setStatus(t) { $('status').textContent = t; }
+
+    function showErr(msg) {
+      $('errbox').style.display = 'block';
+      $('errmsg').textContent = msg || '未知错误';
+    }
+
+    function init() {
+      var loading = $('loading');
+      if (loading) loading.style.display = 'none';
+
+      if (!window.GC || !GC.Spread || !GC.Spread.Sheets) {
+        showErr('SpreadJS 核心库加载失败。请确认网络可访问 jsdelivr CDN，并检查浏览器控制台。');
+        return;
+      }
+      if (!GC.Spread.Sheets.Designer || !GC.Spread.Sheets.Designer.Designer) {
+        showErr('SpreadJS Designer 加载失败。请确认网络可访问 jsdelivr CDN。');
+        return;
+      }
+
+      try {
+        if (GC.Spread.Common && GC.Spread.Common.CultureManager) {
+          GC.Spread.Common.CultureManager.culture('zh-cn');
+        }
+      } catch (e) { /* ignore */ }
+
+      // 正式商用请在此填入授权（试用版无需填写，仅显示水印）：
+      // GC.Spread.Sheets.LicenseKey = 'xxxx';
+      // GC.Spread.Sheets.Designer.LicenseKey = 'xxxx';
+
+      designer = new GC.Spread.Sheets.Designer.Designer($('designer-host'));
+      spread = designer.getWorkbook();
+
+      if (INITIAL.mode === 'form') {
+        // 表单采集模式：根据 Agent 提供的表单定义渲染网格
+        buildForm();
+        $('btn-confirm').addEventListener('click', onSubmitForm);
+      } else {
+        $('page-title').textContent = '文件在线编辑';
+        $('page-subtitle').textContent = INITIAL.fileName + ' · 编辑完成后点击右上角确认';
+
+        loadFile();
+        $('btn-confirm').addEventListener('click', onSubmit);
+      }
+    }
+
+    /** 把注入的 base64 转成 File，用 SpreadJS import/open 载入，保留原始格式。 */
+    function loadFile() {
+      if (!INITIAL.base64) {
+        showErr('未收到文件内容（base64 为空）。');
+        return;
+      }
+      setStatus('正在导入文件…');
+
+      var file;
+      try {
+        var bin = atob(INITIAL.base64);
+        var bytes = new Uint8Array(bin.length);
+        for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+        var blob = new Blob([bytes], { type: 'application/octet-stream' });
+        file = new File([blob], INITIAL.fileName || 'data.xlsx', { type: blob.type });
+      } catch (e) {
+        setStatus('❌ 文件解码失败');
+        alert('文件解码失败：' + e.message);
+        return;
+      }
+
+      var onOk = function () {
+        captureInitialSnapshot();
+        var s = spread.getActiveSheet();
+        setStatus('✅ 文件已加载，可开始编辑');
+        $('page-subtitle').textContent =
+          INITIAL.fileName + ' · ' + s.getRowCount() + ' 行 × ' + s.getColumnCount() + ' 列';
+      };
+      var onErr = function (e) {
+        setStatus('❌ 导入失败');
+        alert('导入失败：' + ((e && e.message) || e));
+      };
+
+      if (INITIAL.ext === 'sjs') {
+        // SJS 用 open 打开
+        spread.open(file, onOk, onErr, {});
+      } else {
+        var fileType =
+          INITIAL.ext === 'csv' ? GC.Spread.Sheets.FileType.csv
+          : INITIAL.ext === 'ssjson' ? GC.Spread.Sheets.FileType.ssjson
+          : GC.Spread.Sheets.FileType.excel;
+        spread.import(file, onOk, onErr, { fileType: fileType });
+      }
+    }
+
+    /** 导入成功后记录初始状态，用于对比生成修改摘要。 */
+    function captureInitialSnapshot() {
+      var s = spread.getActiveSheet();
+      var rc = Math.min(s.getRowCount(), SNAPSHOT_MAX_ROWS);
+      var cc = Math.min(s.getColumnCount(), SNAPSHOT_MAX_COLS);
+      initialSnapshot = {
+        rowCount: rc,
+        colCount: cc,
+        data: rc > 0 && cc > 0 ? s.getArray(0, 0, rc, cc) : [],
+      };
+    }
+
+    /** 对比初始与当前状态，生成中文修改摘要（如“删除了 2 行，添加了 1 列”）。 */
+    function computeSummary() {
+      var s = spread.getActiveSheet();
+      var rc = Math.min(s.getRowCount(), SNAPSHOT_MAX_ROWS);
+      var cc = Math.min(s.getColumnCount(), SNAPSHOT_MAX_COLS);
+      var cur = rc > 0 && cc > 0 ? s.getArray(0, 0, rc, cc) : [];
+      var old = initialSnapshot;
+
+      if (!old) {
+        return { rowCount: s.getRowCount(), colCount: s.getColumnCount(), text: '未记录初始状态' };
+      }
+
+      var rowsDelta = rc - old.rowCount;
+      var colsDelta = cc - old.colCount;
+      var changed = 0;
+
+      for (var r = 0; r < rc; r++) {
+        for (var c = 0; c < cc; c++) {
+          var a = r < old.rowCount && c < old.colCount ? old.data[r] && old.data[r][c] : undefined;
+          var b = cur[r] && cur[r][c];
+          var av = a === undefined || a === null ? '' : String(a);
+          var bv = b === undefined || b === null ? '' : String(b);
+          if (av !== bv) changed++;
+        }
+      }
+
+      var parts = [];
+      if (rowsDelta > 0) parts.push('增加了 ' + rowsDelta + ' 行');
+      if (rowsDelta < 0) parts.push('删除了 ' + -rowsDelta + ' 行');
+      if (colsDelta > 0) parts.push('增加了 ' + colsDelta + ' 列');
+      if (colsDelta < 0) parts.push('删除了 ' + -colsDelta + ' 列');
+      if (changed > 0) parts.push('修改了 ' + changed + ' 个单元格');
+
+      return {
+        rowCount: s.getRowCount(),
+        colCount: s.getColumnCount(),
+        rowsDelta: rowsDelta,
+        colsDelta: colsDelta,
+        cellsChanged: changed,
+        text: parts.length ? parts.join('，') : '无内容修改',
+      };
+    }
+
+    function blobToBase64(blob) {
+      return new Promise(function (resolve, reject) {
+        var reader = new FileReader();
+        reader.onloadend = function () {
+          var parts = String(reader.result).split(',');
+          resolve(parts.length > 1 ? parts[1] : '');
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    }
+
+    /** 点击「下载表格」：导出整个工作簿为 xlsx，浏览器直接下载，同时 POST /save 回传 Agent。 */
+    function onSubmit() {
+      if (submitted) return;
+      submitted = true;
+      setStatus('正在导出并下载…');
+
+      // 下载文件名：原文件名去掉扩展名（xlsx/csv/sjs/ssjson）+ .xlsx，清洗非法字符
+      var fileName = (String(INITIAL.fileName || '表格数据'))
+        .replace(/\.(xlsx|csv|sjs|ssjson)$/i, '')
+        .replace(/[\\/:*?"<>|]/g, '_').trim().slice(0, 80) || '表格数据';
+      fileName += '.xlsx';
+
+      spread.export(function (blob) {
+        // 1) 浏览器直接下载 xlsx（零依赖，替代 FileSaver.js）
+        try {
+          var url = URL.createObjectURL(blob);
+          var a = document.createElement('a');
+          a.href = url;
+          a.download = fileName;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          setTimeout(function () { try { URL.revokeObjectURL(url); } catch (e) {} }, 10000);
+        } catch (e) { /* 下载失败不影响回传 */ }
+
+        // 2) 仍通过 POST /save 把编辑结果回传给 Agent
+        blobToBase64(blob).then(function (base64) {
+          var payload = {
+            type: 'xlsx',
+            fileName: INITIAL.fileName,
+            base64: base64,
+            summary: computeSummary()
+          };
+          fetch('/save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          })
+            .then(function (r) { return r.json(); })
+            .then(function (res) {
+              if (res && res.ok) {
+                setStatus('✅ 已下载 ' + fileName + '，数据已回传');
+                $('btn-confirm').disabled = true;
+              } else {
+                setStatus('⚠️ 已下载，但回传失败（文件已在你手中）');
+                alert('回传失败：' + ((res && res.error) || '未知错误'));
+                submitted = false;
+              }
+            })
+            .catch(function (e) {
+              setStatus('⚠️ 已下载，但回传失败（文件已在你手中）');
+              alert('回传失败：' + e.message);
+              submitted = false;
+            });
+        });
+      }, function (e) {
+        setStatus('❌ 导出失败');
+        alert('导出失败：' + ((e && e.message) || e));
+        submitted = false;
+      }, { fileType: GC.Spread.Sheets.FileType.excel });
+    }
+
+    // ================= 表单采集模式 =================
+
+    /** 根据 Agent 提供的表单定义，渲染网格表单（表头=字段，数据区=空行）。 */
+    function buildForm() {
+      var form = INITIAL.form || {};
+      var fields = Array.isArray(form.fields) ? form.fields : [];
+      var rowCount = Math.max(1, Math.floor(Number(form.rowCount) || 5));
+
+      $('page-title').textContent = form.title || '数据登记表';
+      $('page-subtitle').textContent = form.subtitle || '请填写，完成后点击右上角「下载表格 (xlsx)」';
+      // 按钮保持「下载表格 (xlsx)」：点击 = 下载填好的表格 + 静默回传结构化记录给 Agent
+      $('btn-confirm').title = '下载填好的表格 xlsx，并把填写的记录回传给 Agent';
+
+      if (!fields.length) {
+        showErr('表单定义中缺少 fields。');
+        return;
+      }
+
+      var sheet = spread.getActiveSheet();
+      sheet.suspendPaint();
+      try {
+        sheet.setRowCount(rowCount + 1); // 首行为表头，其余为数据行
+        sheet.setColumnCount(fields.length);
+
+        // 表头行：字段标签 + 必填标记，冻结首行
+        for (var c = 0; c < fields.length; c++) {
+          var f = fields[c];
+          var label = String(f.label || f.name || ('字段' + (c + 1)));
+          if (f.required) label += ' *';
+          var header = sheet.getCell(0, c);
+          header.text(label);
+          header.font('bold 12px "Microsoft YaHei","PingFang SC",Arial,sans-serif');
+          header.backColor('#eaf2ff');
+          header.hAlign(GC.Spread.Sheets.HorizontalAlign.center);
+          header.vAlign(GC.Spread.Sheets.VerticalAlign.center);
+          sheet.setColumnWidth(c, Math.max(80, Number(f.width) || 100));
+          // 每列数据区套用单元格类型 / 下拉样式
+          applyFieldColumn(sheet, c, f, rowCount);
+        }
+        sheet.frozenRowCount(1);
+      } finally {
+        sheet.resumePaint();
+      }
+
+      window.__skill = spread;       // 测试钩子（对齐兄弟 skill 约定）
+      window.__skillReady = true;    // 测试钩子
+      setStatus('✅ 表单已生成，可开始填写');
+    }
+
+    /** 按字段类型给某一列的数据区套用单元格类型或下拉样式。 */
+    function applyFieldColumn(sheet, col, f, rowCount) {
+      var type = String(f.type || 'text').toLowerCase();
+      for (var r = 1; r <= rowCount; r++) {
+        if (type === 'dropdown') {
+          // 用「数据验证 → 序列」实现下拉：ComboBox 是 SpreadJS 专有单元格类型，
+          // 导出为 xlsx 后下拉会丢失；而序列数据验证正是 Excel 原生下拉的存储方式，
+          // 导出后可原样保留（在 Excel 里依然能下拉选择）。
+          var opts = Array.isArray(f.options)
+            ? f.options.map(function (o) { return String(o); })
+            : [];
+          if (opts.length) {
+            // 选项内若含逗号需转义为 \,，否则会被当作列表分隔符
+            var list = opts.map(function (v) { return v.indexOf(',') >= 0 ? v.replace(/,/g, '\\,') : v; }).join(',');
+            var dv = GC.Spread.Sheets.DataValidation.createListValidator(list);
+            dv.showInputMessage(true);
+            dv.inputMessage('请选择：' + opts.join(' / '));
+            dv.inputTitle(String(f.label || f.name || ''));
+            sheet.setDataValidator(r, col, dv);
+          }
+        } else if (type === 'checkbox') {
+          var cb = new GC.Spread.Sheets.CellTypes.CheckBox();
+          sheet.setCellType(r, col, cb);
+        } else if (type === 'date') {
+          var style = new GC.Spread.Sheets.Style();
+          style.cellButtons = [{
+            imageType: GC.Spread.Sheets.ButtonImageType.dropdown,
+            command: 'openDateTimePicker',
+            useButtonStyle: true,
+          }];
+          style.dropDowns = [{
+            type: GC.Spread.Sheets.DropDownType.dateTimePicker,
+            option: { showTime: false },
+          }];
+          style.formatter = 'yyyy-mm-dd';
+          sheet.setStyle(r, col, style);
+        } else if (type === 'number') {
+          sheet.getCell(r, col).formatter('#,##0.00');
+        }
+        // text 及其他未知类型：使用默认编辑器即可
+      }
+    }
+
+    /** 单元格是否为空。 */
+    function cellEmpty(sheet, r, c) {
+      var v = sheet.getValue(r, c);
+      return v === null || v === undefined || v === '';
+    }
+
+    /** 一行是否全为空。 */
+    function rowEmpty(sheet, r, colCount) {
+      for (var c = 0; c < colCount; c++) {
+        if (!cellEmpty(sheet, r, c)) return false;
+      }
+      return true;
+    }
+
+    /** 把日期值格式化为 yyyy-mm-dd 字符串。 */
+    function formatDate(v) {
+      if (v instanceof Date) {
+        var pad = function (n) { return ('0' + n).slice(-2); };
+        return v.getFullYear() + '-' + pad(v.getMonth() + 1) + '-' + pad(v.getDate());
+      }
+      if (typeof v === 'number') {
+        // Excel 序列号 → 日期
+        return formatDate(new Date(Math.round((v - 25569) * 86400 * 1000)));
+      }
+      return v === null || v === undefined ? '' : String(v);
+    }
+
+    /** 读取一行，按字段名组装成对象；跳过全空行。返回 {row, record} 或 null。 */
+    function readRow(sheet, fields, r) {
+      if (rowEmpty(sheet, r, fields.length)) return null;
+      var record = {};
+      for (var c = 0; c < fields.length; c++) {
+        var f = fields[c];
+        var type = String(f.type || 'text').toLowerCase();
+        var v = sheet.getValue(r, c);
+        var key = f.name || String(f.label || c);
+        if (type === 'checkbox') {
+          record[key] = v === true; // 未勾选视为 false
+        } else if (type === 'date') {
+          record[key] = formatDate(v);
+        } else if (type === 'number') {
+          record[key] = (v === null || v === undefined || v === '') ? null : Number(v);
+        } else {
+          record[key] = (v === null || v === undefined) ? '' : String(v);
+        }
+      }
+      return { row: r, record: record };
+    }
+
+    /** 表单模式提交：校验必填 → 收集非空行 → POST /save 回传结构化记录。 */
+    function onSubmitForm() {
+      if (submitted) return;
+      submitted = true;
+      setStatus('正在校验必填项…');
+
+      var form = INITIAL.form || {};
+      var fields = Array.isArray(form.fields) ? form.fields : [];
+      var sheet = spread.getActiveSheet();
+      var rowCount = sheet.getRowCount();
+      var records = [];
+      var missing = [];
+
+      for (var r = 1; r < rowCount; r++) {
+        var got = readRow(sheet, fields, r);
+        if (!got) continue;
+        // 必填校验：该行里 required 字段为空 → 记录缺漏并高亮（复选框不算必填）
+        var rowMissing = [];
+        for (var c = 0; c < fields.length; c++) {
+          var f = fields[c];
+          if (f.required && f.type !== 'checkbox' && (got.record[f.name] === '' || got.record[f.name] === null || got.record[f.name] === undefined)) {
+            rowMissing.push(f.label || f.name);
+            try { sheet.getCell(got.row, c).backColor('#ffe0e0'); } catch (e) {}
+          }
+        }
+        if (rowMissing.length) {
+          missing.push('第 ' + (got.row + 1) + ' 行 · ' + rowMissing.join('、') + ' 未填写');
+        } else {
+          records.push(got.record);
+        }
+      }
+
+      if (missing.length) {
+        submitted = false;
+        setStatus('⚠️ 有必填项未填写');
+        alert('请补全以下必填项：\n\n' + missing.join('\n'));
+        return;
+      }
+
+      // 按钮语义与文件编辑模式一致：下载填好的表格；记录回传是静默的副作用。
+      setStatus('正在导出并下载…');
+      var fileName = (String(form.title || '表单数据'))
+        .replace(/[\\/:*?"<>|]/g, '_').trim().slice(0, 80) || '表单数据';
+      fileName += '.xlsx';
+
+      spread.export(function (blob) {
+        // 1) 浏览器直接下载填好的表格 xlsx（零依赖，替代 FileSaver.js）
+        try {
+          var url = URL.createObjectURL(blob);
+          var a = document.createElement('a');
+          a.href = url;
+          a.download = fileName;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          setTimeout(function () { try { URL.revokeObjectURL(url); } catch (e) {} }, 10000);
+        } catch (e) { /* 下载失败不影响回传 */ }
+
+        // 2) 同时通过 POST /save 把结构化记录 + 填好的 xlsx 回传给 Agent
+        blobToBase64(blob).then(function (base64) {
+          fetch('/save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              type: 'form',
+              title: form.title || '',
+              records: records,
+              rowCount: records.length,
+              base64: base64,
+            })
+          })
+            .then(function (r) { return r.json(); })
+            .then(function (res) {
+              if (res && res.ok) {
+                setStatus('✅ 已下载 ' + fileName + '，数据已回传');
+                $('btn-confirm').disabled = true;
+              } else {
+                setStatus('⚠️ 已下载，但回传失败（文件已在你手中）');
+                alert('回传失败：' + ((res && res.error) || '未知错误'));
+                submitted = false;
+              }
+            })
+            .catch(function (e) {
+              setStatus('⚠️ 已下载，但回传失败（文件已在你手中）');
+              alert('回传失败：' + e.message);
+              submitted = false;
+            });
+        });
+      }, function (e) {
+        setStatus('❌ 导出失败');
+        alert('导出失败：' + ((e && e.message) || e));
+        submitted = false;
+      }, { fileType: GC.Spread.Sheets.FileType.excel });
+    }
+
+    window.addEventListener('error', function (e) {
+      showErr(e.message || e.type);
+    });
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  })();
+  </script>
+</body>
+</html>

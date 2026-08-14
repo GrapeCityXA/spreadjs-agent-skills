@@ -1,0 +1,35 @@
+{
+  "name": "spreadjs-skill",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SpreadJS 常见问题 Demo 集合。所有 demo 共用根目录下的一个 node_modules。",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@grapecity-software/spread-sheets": "19.1.4",
+    "@grapecity-software/spread-sheets-io": "19.1.4",
+    "@grapecity-software/spread-sheets-print": "19.1.4",
+    "@grapecity-software/spread-sheets-pdf": "19.1.4",
+    "@grapecity-software/spread-sheets-shapes": "19.1.4",
+    "@grapecity-software/spread-sheets-charts": "19.1.4",
+    "@grapecity-software/spread-sheets-slicers": "19.1.4",
+    "@grapecity-software/spread-sheets-barcode": "19.1.4",
+    "@grapecity-software/spread-sheets-formula-panel": "19.1.4",
+    "@grapecity-software/spread-sheets-tablesheet": "19.1.4",
+    "@grapecity-software/spread-sheets-languagepackages": "19.1.4",
+    "@grapecity-software/spread-sheets-pivot-addon": "19.1.4",
+    "@grapecity-software/spread-sheets-ganttsheet": "19.1.4",
+    "@grapecity-software/spread-sheets-reportsheet-addon": "19.1.4",
+    "@grapecity-software/spread-sheets-datacharts-addon": "19.1.4",
+    "@grapecity-software/spread-sheets-designer": "19.1.4",
+    "@grapecity-software/spread-sheets-designer-resources-cn": "19.1.4",
+    "file-saver": "2.0.5"
+  },
+  "devDependencies": {
+    "vite": "8.2.0"
+  }
+}

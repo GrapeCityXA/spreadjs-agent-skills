@@ -1,0 +1,12 @@
+{
+  "type": "form",
+  "title": "团队排班登记",
+  "subtitle": "请为每位成员填写本周排班，完成后点击右上角「下载表格 (xlsx)」",
+  "fields": [
+    { "name": "姓名", "label": "姓名", "type": "text", "required": true, "width": 120 },
+    { "name": "值班星期", "label": "值班星期", "type": "dropdown", "options": ["周一", "周二", "周三", "周四", "周五"], "required": true, "width": 110 },
+    { "name": "开始日期", "label": "开始日期", "type": "date", "width": 150 },
+    { "name": "是否出差", "label": "是否出差", "type": "checkbox", "width": 100 }
+  ],
+  "rowCount": 5
+}

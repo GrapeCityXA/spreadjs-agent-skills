@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WebDataExtractor · 在线编辑表格</title>
+
+  <!-- SpreadJS 样式（UMD/CDN 版本） -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@grapecity-software/spread-sheets@19.1.1/styles/gc.spread.sheets.excel2013white.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@grapecity-software/spread-sheets-designer@19.1.1/styles/gc.spread.sheets.designer.min.css" />
+
+  <style>
+    html, body {
+      margin: 0; padding: 0; height: 100%; overflow: hidden;
+      font-family: "Microsoft YaHei", "PingFang SC", "Segoe UI", Arial, sans-serif;
+    }
+    #topbar {
+      position: relative; z-index: 10; height: 48px; box-sizing: border-box;
+      display: flex; align-items: center; gap: 12px; padding: 0 16px;
+      background: #fff; border-bottom: 1px solid #e3e6ea;
+    }
+    #topbar .title { font-size: 14px; font-weight: 600; color: #1f2329; white-space: nowrap; }
+    #topbar .subtitle { font-size: 12px; color: #8a919f; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    #topbar .spacer { flex: 1; }
+    #status { font-size: 12px; color: #3370ff; white-space: nowrap; }
+    #btn-confirm {
+      height: 32px; padding: 0 18px; border: none; border-radius: 4px;
+      background: #3370ff; color: #fff; font-size: 14px; cursor: pointer;
+    }
+    #btn-confirm:hover { background: #2861e0; }
+    #btn-confirm:disabled { background: #a6c0f5; cursor: not-allowed; }
+    /* 设计器占满剩余空间 */
+    #designer-host { position: absolute; top: 48px; left: 0; right: 0; bottom: 0; }
+    #errbox { display: none; position: fixed; inset: 0; background: #fff; z-index: 9999; padding: 60px 40px; }
+    #errbox h3 { color: #e02020; }
+    #errbox p { color: #333; word-break: break-all; }
+    #loading {
+      position: fixed; inset: 0; background: #f7f8fa; z-index: 5;
+      display: flex; align-items: center; justify-content: center; color: #666; font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div id="errbox"><h3>页面初始化失败</h3><p id="errmsg"></p></div>
+  <div id="loading">正在加载 SpreadJS 设计器…</div>
+
+  <!-- 顶部操作栏 -->
+  <div id="topbar">
+    <span class="title" id="page-title">网页数据在线编辑</span>
+    <span class="subtitle" id="page-subtitle"></span>
+    <span class="spacer"></span>
+    <span id="status">正在加载数据…</span>
+    <button id="btn-confirm" title="导出并下载 xlsx，同时把编辑结果回传给 Agent">下载表格 (xlsx)</button>
+  </div>
+  <div id="designer-host"></div>
+
+  <!-- 由 Skill 注入的初始数据（JSON，< 已被转义防注入） -->
+  <script>
+    window.__INITIAL_DATA__ = __INITIAL_DATA_JSON__;
+  </script>
+
+  <!-- ========== SpreadJS 核心 + 插件 + 设计器（UMD） ========== -->
+  <script src="https://cdn.jsdelivr.net/npm/@grapecity-software/spread-sheets@19.1.1/dist/gc.spread.sheets.all.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@grapecity-software/spread-sheets-resources-zh@19.1.1/dist/gc.spread.sheets.resources.zh.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@grapecity-software/spread-sheets-shapes@19.1.1/dist/gc.spread.sheets.shapes.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@grapecity-software/spread-sheets-charts@19.1.1/dist/gc.spread.sheets.charts.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@grapecity-software/spread-sheets-slicers@19.1.1/dist/gc.spread.sheets.slicers.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@grapecity-software/spread-sheets-tablesheet@19.1.1/dist/gc.spread.sheets.tablesheet.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@grapecity-software/spread-sheets-print@19.1.1/dist/gc.spread.sheets.print.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@grapecity-software/spread-sheets-pdf@19.1.1/dist/gc.spread.sheets.pdf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@grapecity-software/spread-sheets-barcode@19.1.1/dist/gc.spread.sheets.barcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@grapecity-software/spread-sheets-pivot-addon@19.1.1/dist/gc.spread.pivot.pivottables.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@grapecity-software/spread-sheets-ganttsheet@19.1.1/dist/gc.spread.sheets.ganttsheet.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@grapecity-software/spread-sheets-reportsheet-addon@19.1.1/dist/gc.spread.report.reportsheet.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@grapecity-software/spread-sheets-io@19.1.1/dist/gc.spread.sheets.io.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@grapecity-software/spread-sheets-designer-resources-cn@19.1.1/dist/gc.spread.sheets.designer.resource.cn.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@grapecity-software/spread-sheets-designer@19.1.1/dist/gc.spread.sheets.designer.all.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@grapecity-software/spread-excelio@19.1.1/dist/gc.spread.excelio.min.js"></script>
+
+  <script>
+  (function () {
+    'use strict';
+
+    // ---- 初始数据（由 Skill 注入） ----
+    var INITIAL = window.__INITIAL_DATA__ || { type: 'auto', rows: [] };
+
+    var designer = null;
+    var spread = null;
+    var submitted = false;
+    var dataSheet = null;   // 数据所在工作表（图表放在独立工作表，不影响回传的 usedRange）
+    var chartAdded = false; // 是否已自动添加图表
+
+    function $(id) { return document.getElementById(id); }
+    function setStatus(t) { $('status').textContent = t; }
+
+    function showErr(msg) {
+      $('errbox').style.display = 'block';
+      $('errmsg').textContent = msg || '未知错误';
+    }
+
+    function init() {
+      var loading = $('loading');
+      if (loading) loading.style.display = 'none';
+
+      if (!window.GC || !GC.Spread || !GC.Spread.Sheets) {
+        showErr('SpreadJS 核心库加载失败。请确认网络可访问 jsdelivr CDN，并检查浏览器控制台。');
+        return;
+      }
+      if (!GC.Spread.Sheets.Designer || !GC.Spread.Sheets.Designer.Designer) {
+        showErr('SpreadJS Designer 加载失败。请确认网络可访问 jsdelivr CDN。');
+        return;
+      }
+
+      // 中文界面
+      try {
+        if (GC.Spread.Common && GC.Spread.Common.CultureManager) {
+          GC.Spread.Common.CultureManager.culture('zh-cn');
+        }
+      } catch (e) { /* ignore */ }
+
+      // 正式商用请在此填入授权（试用版无需填写，仅显示水印）：
+      // GC.Spread.Sheets.LicenseKey = 'xxxx';
+      // GC.Spread.Sheets.Designer.LicenseKey = 'xxxx';
+
+      // 初始化带完整 Ribbon 工具栏的设计器
+      designer = new GC.Spread.Sheets.Designer.Designer($('designer-host'));
+      spread = designer.getWorkbook();
+
+      $('page-title').textContent = INITIAL.title || '网页数据在线编辑';
+      $('page-subtitle').textContent =
+        (INITIAL.sourceUrl || '') + (INITIAL.hint ? ' · ' + INITIAL.hint : '');
+
+      loadTableData();
+      $('btn-confirm').addEventListener('click', onSubmit);
+
+      // 测试/调试钩子：暴露 workbook 与回读函数，供自动化测试断言（不影响正常功能）
+      window.__skillReady = true;
+      window.__skill = spread;
+      window.__skillCollectTable = collectTable;
+    }
+
+    /**
+     * 数字归一化：把「能干净转成数字」的字符串（表头除外）转成 number。
+     * 网页抓取的数据基本都是字符串——转成数字后图表才能正常渲染数值轴，
+     * 回传给 Agent 的二维数组也更利于后续汇总/分析；不可转的文本原样保留。
+     */
+    function normalizeRows(rows) {
+      var out = [];
+      for (var i = 0; i < rows.length; i++) {
+        var r = rows[i];
+        if (i === 0 || !r) { out.push(r ? r.slice() : r); continue; } // 表头保持文本
+        var nr = r.slice();
+        for (var c = 0; c < nr.length; c++) {
+          var n = toNumber(nr[c]);
+          if (n !== null) nr[c] = n;
+        }
+        out.push(nr);
+      }
+      return out;
+    }
+
+    /** 将二维数组填入活动工作表：首行加粗作为表头，随后自动套用样式与图表。 */
+    function loadTableData() {
+      var rows = normalizeRows(INITIAL.rows || []);
+      if (!rows.length) {
+        setStatus('⚠️ 未填充数据（空表格），可直接编辑');
+        return;
+      }
+      var maxCols = 0;
+      rows.forEach(function (r) { if (r.length > maxCols) maxCols = r.length; });
+      if (maxCols === 0) maxCols = 1;
+
+      var sheet = spread.getActiveSheet();
+      dataSheet = sheet;                           // 记录数据表，供回传读取（即使切到图表页也不受影响）
+      if (sheet.name() === 'Sheet1') sheet.name('数据');
+
+      spread.suspendPaint();
+      spread.suspendEvent();
+      sheet.setRowCount(rows.length);
+      sheet.setColumnCount(maxCols);
+      sheet.setArray(0, 0, rows);                  // 整块写入，性能远优于逐格 setValue
+      sheet.getRange(0, 0, 1, maxCols).font('bold');
+
+      // 自动样式（表头/边框/隔行/行高列宽自适应/冻结表头）—— 可用 --no-style 关闭
+      if (INITIAL.style !== false) applyAutoStyle(sheet, rows.length, maxCols);
+      // 自动图表（独立「图表」工作表）—— 可用 --no-chart 关闭；--chart-config 指定列/图型
+      if (INITIAL.chart !== false) addAutoChart(sheet, rows, maxCols, INITIAL.chartConfig);
+
+      spread.resumeEvent();
+      spread.resumePaint();
+      spread.setActiveSheetIndex(0);               // 默认停在数据表
+      setStatus('✅ 已填充 ' + rows.length + ' 行 × ' + maxCols + ' 列' + (chartAdded ? '，已添加图表' : ''));
+    }
+
+    /** 列索引 → Excel 列名（0→A，25→Z，26→AA）。 */
+    function colLetter(n) {
+      var s = '';
+      n = n + 1;
+      while (n > 0) {
+        s = String.fromCharCode(65 + ((n - 1) % 26)) + s;
+        n = Math.floor((n - 1) / 26);
+      }
+      return s;
+    }
+
+    /**
+     * 把「能干净转成数字」的值转成数字；不能转换的（文本/日期/时间/编号）返回 null。
+     * 字符串规则：trim 后可识别 千分位(,) / 金额符号(¥$€£￥ 或 元) / 百分号(%/％，按数值本身) / 「万」(×10000)；
+     * 剥离后剩余部分必须【整体】是数字（正负号/整数/小数/科学计数法），因此
+     * "2024-01-01"(日期)、"1:30"(时间)、"138-0013-8000"(电话) 等不会被误转。
+     * 前导零编号（"007"、"0001"）保持文本，避免编号被转成数字。
+     * 用于两处：图表数值列识别（isNumericColumn）与写单元格前的数字归一化（normalizeRows）。
+     */
+    function toNumber(v) {
+      if (typeof v === 'number') return isFinite(v) ? v : null;
+      if (typeof v !== 'string') return null;
+      var s = v.trim();
+      if (!s) return null;
+      var mult = 1;
+      if (s.indexOf('万') >= 0) mult = 10000;
+      var t = s.replace(/[,，\s]/g, '').replace(/[¥$€£￥]|元|万|%|％/g, '');
+      if (!t || t === '-' || t === '—') return null;
+      // 前导零编号（"007"/"0001"）保持文本；"0"、"0.5" 正常转换
+      if (t.length > 1 && t.charAt(0) === '0' && t.charAt(1) !== '.' && /^[0-9]+$/.test(t)) return null;
+      // 剩余部分必须整体是一个数字，避免 parseFloat 前缀截断误转（如 "2024-01-01" → 2024）
+      if (!/^[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?$/.test(t)) return null;
+      var n = parseFloat(t);
+      return isNaN(n) || !isFinite(n) ? null : n * mult;
+    }
+
+    /** 某列是否为「数值列」：数据行中至少 50% 可转成数字。 */
+    function isNumericColumn(rows, col) {
+      var dataRows = rows.length - 1;
+      if (dataRows <= 0) return false;
+      var hit = 0;
+      for (var i = 1; i < rows.length; i++) {
+        if (toNumber(rows[i][col]) !== null) hit++;
+      }
+      return hit / dataRows >= 0.5;
+    }
+
+    /** 自动样式：表头加粗/底色/居中 + 数据区边框与隔行底色 + 行高列宽自适应 + 冻结表头。 */
+    function applyAutoStyle(sheet, rowCount, colCount) {
+      try {
+        var border = new GC.Spread.Sheets.LineBorder('#d9e1ea', GC.Spread.Sheets.LineStyle.thin);
+        var h = new GC.Spread.Sheets.Style();
+        h.font = 'bold 12px "Microsoft YaHei"';
+        h.backColor = '#eaf2ff';
+        h.foreColor = '#1f2329';
+        h.hAlign = GC.Spread.Sheets.HorizontalAlign.center;
+        h.vAlign = GC.Spread.Sheets.VerticalAlign.center;
+        h.borderLeft = h.borderTop = h.borderRight = h.borderBottom = border;
+        sheet.getRange(0, 0, 1, colCount).setStyle(h);
+
+        var base = new GC.Spread.Sheets.Style();
+        base.borderLeft = base.borderTop = base.borderRight = base.borderBottom = border;
+        var alt = new GC.Spread.Sheets.Style();
+        alt.borderLeft = alt.borderTop = alt.borderRight = alt.borderBottom = border;
+        alt.backColor = '#f7f9fc';
+
+        sheet.getRange(1, 0, Math.max(0, rowCount - 1), colCount).setStyle(base);
+        for (var r = 2; r < rowCount; r += 2) {
+          sheet.getRange(r, 0, 1, colCount).setStyle(alt);
+        }
+
+        // 行高 / 列宽自适应
+        for (var c = 0; c < colCount; c++) sheet.autoFitColumn(c);
+        for (var r2 = 0; r2 < rowCount; r2++) sheet.autoFitRow(r2);
+        // 冻结表头行，滚动时表头常驻
+        sheet.frozenRowCount(1);
+      } catch (e) { /* 样式失败不影响主流程 */ }
+    }
+
+    /** AI 指定的列引用 → 列号：数字当列号，字符串按表头名匹配；未命中返回 -1。 */
+    function resolveCol(rows, ref) {
+      if (typeof ref === 'number') {
+        return ref >= 0 && ref < rows[0].length ? ref : -1;
+      }
+      if (typeof ref !== 'string') return -1;
+      var target = String(ref);
+      for (var c = 0; c < rows[0].length; c++) {
+        if (String(rows[0][c]) === target) return c;
+      }
+      return -1;
+    }
+
+    /** 图表类型映射：column/bar/line/pie → ChartType 枚举。 */
+    var CHART_TYPE_MAP = {
+      column: GC.Spread.Sheets.Charts.ChartType.columnClustered,
+      bar: GC.Spread.Sheets.Charts.ChartType.barClustered,
+      line: GC.Spread.Sheets.Charts.ChartType.line,
+      pie: GC.Spread.Sheets.Charts.ChartType.pie
+    };
+
+    /**
+     * 自动图表，放在独立「图表」工作表。
+     * 优先按 AI 的 --chart-config 选择列与图型（category/series/type，列可用表头名或列号）；
+     * 无配置时启发式选列（所有数值列，上限 6 个系列，避免列多时图表过载）。
+     */
+    function addAutoChart(sheet, rows, colCount, config) {
+      if (rows.length < 3) return; // 需要表头 + 至少 2 行数据
+      var type = GC.Spread.Sheets.Charts.ChartType.columnClustered;
+      var numericCols = [];
+      var catCol = -1;
+      var chartTitle = null;
+
+      var cfg = config && config.series && config.series.length ? config : null;
+      if (cfg) {
+        // ---- AI 配置路径：按表头名/列号解析所选列 ----
+        var seriesCols = [];
+        cfg.series.forEach(function (s) {
+          var c = resolveCol(rows, s);
+          if (c >= 0 && seriesCols.indexOf(c) < 0) seriesCols.push(c);
+        });
+        if (seriesCols.length) {
+          numericCols = seriesCols;
+          type = CHART_TYPE_MAP[cfg.type] || GC.Spread.Sheets.Charts.ChartType.columnClustered;
+          // 饼图 = 类别 + 单数值列，多给也只取第一个
+          if (type === GC.Spread.Sheets.Charts.ChartType.pie) numericCols = numericCols.slice(0, 1);
+          if (typeof cfg.title === 'string') chartTitle = cfg.title;
+          if (cfg.category !== undefined) catCol = resolveCol(rows, cfg.category);
+        } else {
+          console.warn('[WebDataExtractor] --chart-config 的 series 列未匹配到表头，回退自动选列', cfg.series);
+        }
+      }
+
+      if (!numericCols.length) {
+        // ---- 启发式路径：所有数值列（上限 6 个系列） ----
+        for (var c = 0; c < colCount; c++) {
+          if (isNumericColumn(rows, c)) numericCols.push(c);
+        }
+        if (!numericCols.length) return;
+        if (numericCols.length > 6) {
+          console.warn('[WebDataExtractor] 数值列较多，图表仅取前 6 个系列；可用 --chart-config 指定要画的列');
+          numericCols = numericCols.slice(0, 6);
+        }
+      }
+
+      // 类别列：优先第一个非系列列；未命中时让第一列当类别（需要 ≥2 个系列）
+      if (catCol < 0 || numericCols.indexOf(catCol) >= 0) {
+        catCol = -1;
+        for (var c2 = 0; c2 < colCount; c2++) {
+          if (numericCols.indexOf(c2) < 0) { catCol = c2; break; }
+        }
+      }
+      if (catCol < 0) {
+        if (numericCols.length < 2) return;
+        catCol = numericCols.shift();
+      }
+
+      try {
+        var chartSheet;
+        if (spread.getSheetCount() > 1 && spread.getSheet(1).name() === '图表') {
+          chartSheet = spread.getSheet(1);
+        } else {
+          spread.addSheet(1);
+          chartSheet = spread.getSheet(1);
+          chartSheet.name('图表');
+        }
+        var sheetName = sheet.name();
+        var ref = function (col, row) {
+          return "'" + sheetName + "'!" + colLetter(col) + (row + 1);
+        };
+        var dataRowCount = rows.length - 1;
+        var w = Math.max(420, Math.min(760, 360 + numericCols.length * 70));
+        var h = Math.max(240, Math.min(420, 220 + dataRowCount * 14));
+        var chart = chartSheet.charts.add('autoChart', type, 24, 24, w, h);
+        var series = chart.series();
+        for (var i = 0; i < numericCols.length; i++) {
+          var sc = numericCols[i];
+          var item = {
+            chartType: type,
+            name: ref(sc, 0),
+            xValues: ref(catCol, 1) + ':' + ref(catCol, dataRowCount),
+            yValues: ref(sc, 1) + ':' + ref(sc, dataRowCount)
+          };
+          if (type !== GC.Spread.Sheets.Charts.ChartType.pie) {
+            item.axisGroup = GC.Spread.Sheets.Charts.AxisGroup.primary;
+          }
+          series.add(item);
+        }
+        chart.title({ text: chartTitle || (INITIAL.title || '数据') + ' 图表' });
+        chartAdded = true;
+      } catch (e) { /* 图表失败不影响主流程 */ }
+    }
+
+    /** 读取「数据表」有数据的区域，返回二维数组（图表在独立工作表，不影响结果）。 */
+    function collectTable() {
+      if (!dataSheet) return [];
+      var used = dataSheet.getUsedRange(GC.Spread.Sheets.UsedRangeType.data);
+      if (!used || !used.rowCount || !used.colCount) return [];
+      return dataSheet.getArray(used.row, used.col, used.rowCount, used.colCount);
+    }
+
+    function collectSummary() {
+      if (!dataSheet) return { rowCount: 0, colCount: 0 };
+      return { rowCount: dataSheet.getRowCount(), colCount: dataSheet.getColumnCount() };
+    }
+
+    function blobToBase64(blob) {
+      return new Promise(function (resolve, reject) {
+        var reader = new FileReader();
+        reader.onloadend = function () {
+          var parts = String(reader.result).split(',');
+          resolve(parts.length > 1 ? parts[1] : '');
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    }
+
+    /** 点击「下载表格」：导出 xlsx 后 ① 直接下载文件，② 同时 POST /save 回传 Agent。 */
+    function onSubmit() {
+      if (submitted) return;
+      submitted = true;
+      setStatus('正在导出并下载…');
+
+      var table = collectTable();
+      var fileName = ((INITIAL.title || '表格数据') + '').replace(/[\\/:*?"<>|]/g, '_').trim().slice(0, 80) || '表格数据';
+      fileName += '.xlsx';
+
+      spread.export(function (blob) {
+        // 1) 直接下载 xlsx（零依赖：Blob URL + <a download>）
+        try {
+          var url = URL.createObjectURL(blob);
+          var a = document.createElement('a');
+          a.href = url;
+          a.download = fileName;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          setTimeout(function () { URL.revokeObjectURL(url); }, 10000);
+        } catch (e) { /* 下载失败不影响回传 */ }
+
+        // 2) 仍 POST /save：把编辑后的二维数组 + xlsx(base64) 回传给 Agent
+        blobToBase64(blob).then(function (base64) {
+          var payload = {
+            type: INITIAL.kind || INITIAL.type || 'table',
+            table: table,
+            base64: base64,
+            summary: collectSummary()
+          };
+          fetch('/save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          })
+            .then(function (r) { return r.json(); })
+            .then(function (res) {
+              if (res && res.ok) {
+                setStatus('✅ 已下载 ' + fileName + '，数据已回传');
+                $('btn-confirm').disabled = true;
+              } else {
+                setStatus('⚠️ 已下载，但回传失败（文件已在你手中）');
+                alert('回传失败：' + ((res && res.error) || '未知错误'));
+                submitted = false;
+              }
+            })
+            .catch(function (e) {
+              setStatus('⚠️ 已下载，但回传失败（文件已在你手中）');
+              alert('回传失败：' + e.message);
+              submitted = false;
+            });
+        });
+      }, function (e) {
+        setStatus('❌ 导出失败');
+        alert('导出失败：' + ((e && e.message) || e));
+        submitted = false;
+      }, { fileType: GC.Spread.Sheets.FileType.excel });
+    }
+
+    window.addEventListener('error', function (e) {
+      showErr(e.message || e.type);
+    });
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  })();
+  </script>
+</body>
+</html>

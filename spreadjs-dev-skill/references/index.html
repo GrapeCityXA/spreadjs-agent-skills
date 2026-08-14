@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SpreadJS Skill · 常见问题 Demo</title>
+  <style>
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f5f6f8; color: #1f2937; margin: 0; padding: 32px; }
+    h1 { font-size: 20px; }
+    p { color: #6b7280; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; max-width: 1100px; }
+    a.card { display: block; padding: 14px 16px; border: 1px solid #e5e7eb; border-radius: 10px; background: #fff; text-decoration: none; color: #1f2937; transition: all .15s; }
+    a.card:hover { border-color: #6366f1; box-shadow: 0 2px 10px rgba(99,102,241,.15); transform: translateY(-1px); }
+    .n { font-weight: 600; } .d { font-size: 12px; color: #6b7280; margin-top: 4px; }
+  </style>
+</head>
+<body>
+  <h1>SpreadJS Skill · 常见问题 Demo</h1>
+  <p>选择一个 Demo 进入。运行方式见 <code>spreadjs-skill/README.md</code>（<code>npm install</code> 后 <code>npm run dev</code>）。</p>
+  <div class="grid">
+    <a class="card" href="demo-01-large-data-performance/"><div class="n">01 · 大数据加载与性能优化</div><div class="d">suspendPaint / setArray / 行筛选</div></a>
+    <a class="card" href="demo-02-host-size-refresh/"><div class="n">02 · 表格跟随 host 尺寸变化</div><div class="d">spread.refresh() / setTimeout</div></a>
+    <a class="card" href="demo-03-excel-import-export/"><div class="n">03 · Excel / SJS 导入导出</div><div class="d">import / export / open / save</div></a>
+    <a class="card" href="demo-04-csv-handling/"><div class="n">04 · CSV 读写与分隔符</div><div class="d">getCsv / setCsv / 自定义分隔符</div></a>
+    <a class="card" href="demo-05-print-pdf/"><div class="n">05 · 打印与 PDF 导出</div><div class="d">print + pdf 插件 / savePDF</div></a>
+    <a class="card" href="demo-06-cell-level-binding/"><div class="n">06 · 单元格级别数据绑定</div><div class="d">CellBindingSource / setBindingPath</div></a>
+    <a class="card" href="demo-07-table-binding-datasource/"><div class="n">07 · 表格绑定与动态数据源</div><div class="d">Table / bindColumns / 追加替换</div></a>
+    <a class="card" href="demo-08-merged-cell-value/"><div class="n">08 · 合并单元格取值</div><div class="d">addSpan / getSpan</div></a>
+    <a class="card" href="demo-09-styles-format/"><div class="n">09 · 单元格样式与数字格式</div><div class="d">Style / formatter / LineBorder</div></a>
+    <a class="card" href="demo-10-conditional-formatting/"><div class="n">10 · 条件格式</div><div class="d">CellValueRule / FormulaRule</div></a>
+    <a class="card" href="demo-11-frozen-rows-cols/"><div class="n">11 · 冻结行列与冻结线</div><div class="d">frozenRowCount / 尾部冻结</div></a>
+    <a class="card" href="demo-12-data-validation/"><div class="n">12 · 数据验证</div><div class="d">createListValidator / Number</div></a>
+    <a class="card" href="demo-13-custom-formula-name/"><div class="n">13 · 自定义公式与名称</div><div class="d">addCustomName / 名称管理</div></a>
+    <a class="card" href="demo-14-clipboard-paste/"><div class="n">14 · 剪贴板复制粘贴</div><div class="d">clipboardPaste 命令 / 拦截</div></a>
+    <a class="card" href="demo-15-filter-sort/"><div class="n">15 · 行筛选与排序</div><div class="d">HideRowFilter / sortRange</div></a>
+    <a class="card" href="demo-16-events-handling/"><div class="n">16 · 事件处理与批量监听</div><div class="d">CellChanged / suspendEvent</div></a>
+    <a class="card" href="demo-17-custom-cell-type/"><div class="n">17 · 自定义单元格类型</div><div class="d">CellTypes.Base / paint</div></a>
+    <a class="card" href="demo-18-comments/"><div class="n">18 · 批注 Comments</div><div class="d">comments.add / displayMode</div></a>
+    <a class="card" href="demo-19-shapes-charts/"><div class="n">19 · 形状与图表</div><div class="d">shapes + charts 插件</div></a>
+    <a class="card" href="demo-20-framework-designer/"><div class="n">20 · 框架集成与生命周期</div><div class="d">refresh / destroy / Designer</div></a>
+    <a class="card" href="demo-21-designer-init/"><div class="n">21 · Designer 初始化与取 Workbook</div><div class="d">new Designer / getWorkbook</div></a>
+    <a class="card" href="demo-22-designer-ribbon-menu/"><div class="n">22 · Designer 自定义 Ribbon</div><div class="d">添加一级/二级菜单</div></a>
+    <a class="card" href="demo-23-designer-context-menu/"><div class="n">23 · Designer 自定义右键菜单</div><div class="d">contextMenu / 子菜单 / 分隔符</div></a>
+    <a class="card" href="demo-24-designer-command-undo/"><div class="n">24 · Designer 自定义命令</div><div class="d">可撤销命令 / 撤销列表</div></a>
+  </div>
+</body>
+</html>
