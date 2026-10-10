@@ -54,7 +54,8 @@ function parseArgs(argv) {
   const formIdx = args.indexOf('--form');
   let formPath = null;
   if (formIdx >= 0 && args[formIdx + 1]) formPath = path.resolve(args[formIdx + 1]);
-  const fileArg = args.find((a, i) => i !== formIdx + 1 && !a.startsWith('-'));
+  const skipIdx = formIdx >= 0 ? formIdx + 1 : -1;
+  const fileArg = args.find((a, i) => i !== skipIdx && !a.startsWith('-'));
   return {
     filePath: fileArg ? path.resolve(fileArg) : null,
     formPath,
