@@ -1,0 +1,28 @@
+{
+  "name": "online-excel-editor",
+  "version": "1.0.0",
+  "description": "在线编辑 Excel/CSV，或生成可填写的网格表单",
+  "author": {
+    "name": "GrapeCity"
+  },
+  "repository": "https://github.com/GrapeCityXA/spreadjs-agent-skills",
+  "keywords": [
+    "excel",
+    "xlsx",
+    "csv",
+    "spreadsheet",
+    "spreadjs",
+    "form",
+    "data-collection",
+    "表格",
+    "表单"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "在线表格编辑",
+    "shortDescription": "在线编辑 Excel/CSV，或生成可填写的网格表单",
+    "longDescription": "当用户要求处理/打开/预览/修改某个 Excel、CSV 或表格文件（提供本地路径或附件），或要求创建/制作/收集一张可填写的表格、表单或登记表（如排班值班、活动报名、会议签到、请假考勤、费用报销、物资领用、库存盘点、设备巡检、安全排查、项目风险登记、问卷调研、周报日报、数据上报、客户线索、候选人登记）时，使用本技能。在浏览器中用 SpreadJS 设计器在线编辑表格并下载填好的 xlsx，或按 Agent 提供的表单定义（字段类型：文本/数字/下拉/复选框/日期，支持必填校验）生成可填写的网格表单，逐行采集结构化记录，回传给 Agent 并落盘 JSON 与填好的 xlsx。触发关键词：制作表格、创建表格、生成表格、做表、建表、在线表格、可填写表格、表单采集、数据填报、登记表、收集排班、填表、报名登记、签到表、请假考勤、费用报销、领用登记、库存盘点、巡检记录、安全排查、问卷调查、周报收集、数据上报、客户线索、候选人登记、处理 Excel、编辑 xlsx、编辑表格文件、打开附件表格、在线预览修改表格、create spreadsheet、make xlsx、build table、generate excel、edit xlsx、preview spreadsheet、open excel attachment、collect form、data entry、fill in form、register、enroll、survey、attendance、inventory。",
+    "developerName": "GrapeCity",
+    "category": "Productivity"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "name": "spreadjs-dev-skill",
+  "version": "1.0.0",
+  "description": "编写、调试、审查 SpreadJS 前端电子表格代码",
+  "author": {
+    "name": "GrapeCity"
+  },
+  "repository": "https://github.com/GrapeCityXA/spreadjs-agent-skills",
+  "keywords": [
+    "spreadjs",
+    "spreadsheet",
+    "电子表格",
+    "葡萄城表格",
+    "excel",
+    "designer",
+    "react",
+    "vue",
+    "angular"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "SpreadJS 开发 Skill",
+    "shortDescription": "编写、调试、审查 SpreadJS 前端电子表格代码",
+    "longDescription": "用于编写、调试、审查 SpreadJS（葡萄城表格 / GrapeCity）前端电子表格组件的代码。覆盖工作簿/工作表/单元格、数据绑定、公式与自定义函数、Excel/CSV/SJS 导入导出、样式与条件格式、图表与形状、筛选排序、打印与 PDF、设计器 Designer、以及 React/Vue/Angular 集成。触发关键词：SpreadJS、葡萄城表格、表格控件、电子表格、GC.Spread.Sheets、Workbook、Worksheet、setDataSource、spread-sheets、@grapecity-software/spread-sheets、Designer 表格、表格 IO。",
+    "developerName": "GrapeCity",
+    "category": "Developer"
+  }
+}

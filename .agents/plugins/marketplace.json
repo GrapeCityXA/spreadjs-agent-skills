@@ -1,0 +1,44 @@
+{
+  "name": "grapecity-spreadjs",
+  "interface": {
+    "displayName": "GrapeCity SpreadJS"
+  },
+  "plugins": [
+    {
+      "name": "online-excel-editor",
+      "source": {
+        "source": "local",
+        "path": "./online-excel-editor"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    },
+    {
+      "name": "web-data-extractor-skill",
+      "source": {
+        "source": "local",
+        "path": "./web-data-extractor-skill"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    },
+    {
+      "name": "spreadjs-dev-skill",
+      "source": {
+        "source": "local",
+        "path": "./spreadjs-dev-skill"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer"
+    }
+  ]
+}
